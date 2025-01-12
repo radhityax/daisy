@@ -36,6 +36,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    char *of = malloc(strlen(argv[1])+6);
+    if (of == NULL) {
+	    perror("Galat alokasi memori of");
+	    return 1;
+    }
+    strcpy(of, argv[1]);
+    strcat(of, ".html");
+
     fptr = fopen(argv[1], "rt");
     if (fptr == NULL) {
         perror("Galat membuka masukan berkas");
@@ -43,7 +51,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    FILE *fpto = fopen("data.html", "wb");
+    FILE *fpto = fopen(of, "wb");
     if (fpto == NULL) {
         perror("Galat membuat keluaran berkas");
         fclose(fptr);
