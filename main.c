@@ -30,42 +30,32 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    char *txt = malloc(1024);
-    if (txt == NULL) {
-        perror("Galat alokasi memori");
-        return 1;
-    }
-
-    char *of = malloc(strlen(argv[1])+6);
-    if (of == NULL) {
-	    perror("Galat alokasi memori of");
-	    return 1;
-    }
+    char txt[50], of[50];
+    
     strcpy(of, argv[1]);
     strcat(of, ".html");
 
     fptr = fopen(argv[1], "rt");
     if (fptr == NULL) {
-        perror("Galat membuka masukan berkas");
-        free(txt);
+        perror("Galat membuka masukan berkas fptr\n");
         return 1;
     }
 
     FILE *fpto = fopen(of, "wb");
     if (fpto == NULL) {
-        perror("Galat membuat keluaran berkas");
+        perror("Galat membuat keluaran berkas fpto\n");
         fclose(fptr);
-        free(txt);
         return 1;
     }
-
-    while (fgets(txt, 1024, fptr) != NULL) {
+    
+    fprintf(fpto, "<html>\n");
+    while (fgets(txt, 50, fptr) != NULL) {
         fprintf(fpto, "<p>%s</p>\n", txt);
     }
+    fprintf(fpto, "</html>");
 
     fclose(fptr);
     fclose(fpto);
-    free(txt);
     return 0;
 }
 
