@@ -25,6 +25,24 @@ markdown mdt;
 
 FILE *fptr;
 
+char 
+*gantihuruf(const char *kata) 
+{
+    static char output[100];
+    char *dot = strrchr(kata, '.');
+    
+    if (dot == NULL || dot == kata) {
+        snprintf(output, sizeof(output), "%s.html", kata);
+    } else {
+        int len = dot - kata;
+        strncpy(output, kata, len);
+        output[len] = '\0';
+        strcat(output, ".html");
+    }
+    
+    return output;
+}
+
 void 
 checker() 
 {
@@ -96,7 +114,8 @@ main(int argc, char *argv[])
         file_name++;
     }
 
-    snprintf(of, sizeof(of), "target/%s.html", file_name);
+    char *new_name = gantihuruf(file_name);
+    snprintf(of, sizeof(of), "target/%s", new_name);
 
     fptr = fopen(argv[1], "rt");
     if (fptr == NULL) {
