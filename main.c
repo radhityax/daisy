@@ -1,3 +1,9 @@
+/* daisy
+ * alif@radhitya.org
+ * 
+ * thank you stackoverflow, geeksforgeeks, grok
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +11,8 @@
 
 #define MAX_LENGTH 1000
 
-typedef struct markdown {
+typedef struct 
+markdown {
     int bold;
     int quote;
     int italic;
@@ -18,7 +25,9 @@ markdown mdt;
 
 FILE *fptr;
 
-void checker() {
+void 
+checker() 
+{
     fptr = fopen("./source/data.txt", "rb+");
     if (fptr == NULL) {
         perror("galat checker buat ./source/data.txt");
@@ -26,7 +35,9 @@ void checker() {
     }
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) 
+{
     if (argc < 2) {
         printf("penggunaan: %s <berkas_input>\natau %s -h untuk info lebih lanjut\n", argv[0], argv[0]);
         return 1;
@@ -74,7 +85,9 @@ int main(int argc, char *argv[]) {
     char txt[MAX_LENGTH], of[MAX_LENGTH];
 
     int i, len;
-    mdt.italic = 0, mdt.bold = 0, mdt.quote = 0, mdt.headingone = 0;
+
+    mdt.italic = 0, mdt.bold = 0, mdt.quote = 0, mdt.headingone = 0, mdt.headingtwo = 0;
+    mdt.headingthree = 0;
 
     const char *file_name = strrchr(argv[1], '/');
     if (file_name == NULL) {
@@ -99,28 +112,48 @@ int main(int argc, char *argv[]) {
     }
     
     fprintf(fpto, "<html>\n<body>\n");
+    
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
-        if (len > 0 && txt[len-1] == '\n') {
+
+	// hapus newline
+	if (len > 0 && txt[len-1] == '\n') {
             txt[--len] = '\0';
         }
+
         mdt.headingone = 0;
+        mdt.headingtwo = 0;
         mdt.quote = 0;
-        if(len == 0) {
+	 if(len == 0) {
             fprintf(fpto, "\n");
         } else {
-            if(len > 0 && txt[0] == '#' && (len == 1 || txt[1] != '\\')) {
-                fprintf(fpto, "<h1>");
-                mdt.headingone = 1;
-            }
-            else if (len > 0 && txt[0] == '>' && (len == 1 || txt[1] != '\\')) {
+            i = 0;
+            if(len > 1 && txt[0] == '#' && txt[1] != '\\') {
+                if(len > 2 && txt[1] == '#' && txt[2] != '\\') {
+                    if(len > 3 && txt[2] == '#' && txt[3] != '\\') {
+                        fprintf(fpto, "<h3>");
+                        mdt.headingthree = 1;
+                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
+                    } else {
+                        fprintf(fpto, "<h2>");
+                        mdt.headingtwo = 1;
+                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
+                    }
+                } else {
+                    fprintf(fpto, "<h1>");
+                    mdt.headingone = 1;
+                    while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
+                }
+            } else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
                 fprintf(fpto, "<blockquote>");
                 mdt.quote = 1;
-            }
-            else {
+                i = 0;
+            } else {
                 fprintf(fpto, "<p>");
+                i = 0;
             }
-            for(i = 0; i < len; i++) {
+
+            for(; i < len; i++) {
                 if (txt[i] == '_' && (i == 0 || txt[i-1] != '\\')) {
                     if(!mdt.italic) {
                         fprintf(fpto, "<i>");
@@ -151,10 +184,17 @@ int main(int argc, char *argv[]) {
 	    else if(mdt.quote) fprintf(fpto, "</blockquote>");
 	    else if(mdt.headingone) {
                 fprintf(fpto, "</h1>\n");
-            } else {
+            }
+            else if(mdt.headingtwo) {
+                fprintf(fpto, "</h2>\n");
+            }
+	    else if(mdt.headingthree) {
+		fprintf(fpto, "</h3>\n");
+	    }
+            else {
                 fprintf(fpto, "</p>\n");
             }
-            mdt.italic = mdt.bold = mdt.quote = mdt.headingone = 0;
+            mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = 0;
         }
     }
 
