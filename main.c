@@ -147,7 +147,7 @@ main(int argc, char *argv[])
             } else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
                 fprintf(fpto, "<blockquote>");
                 mdt.quote = 1;
-                i = 0;
+                while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
             } else {
                 fprintf(fpto, "<p>");
                 i = 0;
