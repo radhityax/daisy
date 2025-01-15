@@ -1,9 +1,10 @@
 cc= cc
+cflags = -Wall -Wextra -std=c99 -pedantic
 src= main.c
 out= daisy
 
 install:
-	$(cc) $(src) -o $(out)
+	$(cc) $(cflags) $(src) -o $(out)
 
 clean:
 	rm -rf source
