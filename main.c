@@ -59,7 +59,7 @@ void build(void) {
     mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
 
     fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n</head>\n");
-    fprintf(fpto, "<style>body{background: #4caf50}</style>\n</head>");
+    fprintf(fpto, "<style>body{background: #4caf50} blockquote{background: #fff}</style>\n</head>");
 
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
@@ -182,7 +182,7 @@ void build(void) {
             if (mdt.italic) fprintf(fpto, "</i>");
 	    if (mdt.code) fprintf(fpto, "</code>");
 	    if (mdt.bold) fprintf(fpto, "</b>");
-	    if (mdt.quote) fprintf(fpto, "</blockquote>");
+	    if (mdt.quote) fprintf(fpto, "</blockquote>\n");
 	    else if (mdt.headingone) fprintf(fpto, "</h1>\n");
 	    else if (mdt.headingtwo) fprintf(fpto, "</h2>\n");
 	    else if (mdt.headingthree) fprintf(fpto, "</h3>\n");
