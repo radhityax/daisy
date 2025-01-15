@@ -58,7 +58,7 @@ void checker(void) {
 void build(void) {
     mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
 
-    fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n");
+    fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n</head>\n");
     fprintf(fpto, "<style>body{background: #4caf50}</style>\n</head>");
 
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
@@ -108,7 +108,54 @@ void build(void) {
                         mdt.italic = 0;
                     }
                 } else if (txt[i] == '[' && (i == 0 || txt[i-1] != '\\')) {
-                    fprintf(fpto, "[%c]", txt[i]);
+                    int start_linkname = i + 1;
+                    int end_linkname = -1;
+                    int start_linkurl = -1;
+                    int end_linkurl = -1;
+                    int j;
+
+                    for (j = start_linkname; j < len; j++) {
+                        if (txt[j] == ']' && (j == 0 || txt[j-1] != '\\')) {
+                            end_linkname = j;
+                            break;
+                        }
+                    }
+
+                    if (end_linkname != -1) {
+                        for (j = end_linkname + 1; j < len; j++) {
+                            if (txt[j] == '(' && (j == 0 || txt[j-1] != '\\')) {
+                                start_linkurl = j + 1;
+                                break;
+                            }
+                        }
+
+                        if (start_linkurl != -1) {
+                            for (j = start_linkurl; j < len; j++) {
+                                if (txt[j] == ')' && (j == 0 || txt[j-1] != '\\')) {
+                                    end_linkurl = j;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (end_linkname != -1 && end_linkurl != -1) {
+                        char linkname[100], linkurl[100];
+                        int linkname_len = end_linkname - start_linkname;
+                        int linkurl_len = end_linkurl - start_linkurl;
+
+                        strncpy(linkname, txt + start_linkname, linkname_len);
+                        linkname[linkname_len] = '\0';
+
+                        strncpy(linkurl, txt + start_linkurl, linkurl_len);
+                        linkurl[linkurl_len] = '\0';
+
+                        fprintf(fpto, "<a href=\"%s\">%s</a>", linkurl, linkname);
+
+                        i = end_linkurl;
+                    } else {
+                        fprintf(fpto, "[");
+                    }
                 } else if (txt[i] == '`' && (i == 0 || txt[i-1] != '\\')) {
                     if (!mdt.code) {
                         fprintf(fpto, "<code>");
@@ -133,14 +180,16 @@ void build(void) {
             }
 
             if (mdt.italic) fprintf(fpto, "</i>");
-            if (mdt.code) fprintf(fpto, "</code>");
-            if (mdt.bold) fprintf(fpto, "</b>");
-            if (mdt.quote) fprintf(fpto, "</blockquote>");
-            if (mdt.headingone) fprintf(fpto, "</h1>\n");
-            if (mdt.headingtwo) fprintf(fpto, "</h2>\n");
-            if (mdt.headingthree) fprintf(fpto, "</h3>\n");
-            if (!(mdt.headingone || mdt.headingtwo || mdt.headingthree || mdt.quote)) fprintf(fpto, "</p>\n");
+	    if (mdt.code) fprintf(fpto, "</code>");
+	    if (mdt.bold) fprintf(fpto, "</b>");
+	    if (mdt.quote) fprintf(fpto, "</blockquote>");
+	    else if (mdt.headingone) fprintf(fpto, "</h1>\n");
+	    else if (mdt.headingtwo) fprintf(fpto, "</h2>\n");
+	    else if (mdt.headingthree) fprintf(fpto, "</h3>\n");
+	    if (!(mdt.headingone || mdt.headingtwo || mdt.headingthree || mdt.quote)) fprintf(fpto, "</p>\n");
         }
+	    mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
+
     }
 
     fprintf(fpto, "</body>\n</html>");
