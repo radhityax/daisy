@@ -191,6 +191,54 @@ main(int argc, char *argv[])
                         mdt.italic = 0;
                     }
                 }
+else if (txt[i] == '[' && (i == 0 || txt[i-1] != '\\')) {
+    int start_linkname = i + 1;
+    int end_linkname = -1;
+    int start_linkurl = -1;
+    int end_linkurl = -1;
+    int j;
+
+    for (j = start_linkname; j < len; j++) {
+        if (txt[j] == ']' && (j == 0 || txt[j-1] != '\\')) {
+            end_linkname = j;
+            break;
+        }
+    }
+
+    if (end_linkname != -1) {
+        for (j = end_linkname + 1; j < len; j++) {
+            if (txt[j] == '(' && (j == 0 || txt[j-1] != '\\')) {
+                start_linkurl = j + 1;
+                break;
+            }
+        }
+
+        if (start_linkurl != -1) {
+            for (j = start_linkurl; j < len; j++) {
+                if (txt[j] == ')' && (j == 0 || txt[j-1] != '\\')) {
+                    end_linkurl = j;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (end_linkname != -1 && end_linkurl != -1) {
+        char linkname[100], linkurl[100];
+        int linkname_len = end_linkname - start_linkname;
+        int linkurl_len = end_linkurl - start_linkurl;
+
+        strncpy(linkname, txt + start_linkname, linkname_len);
+        linkname[linkname_len] = '\0';
+
+        strncpy(linkurl, txt + start_linkurl, linkurl_len);
+        linkurl[linkurl_len] = '\0';
+
+        fprintf(fpto, "<a href=\"%s\">%s</a>", linkurl, linkname);
+
+        i = end_linkurl;
+    }
+}
 		else if (txt[i] == '`' && (i == 0 || txt[i-1] != '\\')) {
 		if(!mdt.code) {
 			fprintf(fpto, "<code>");
