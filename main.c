@@ -46,7 +46,7 @@ char
 }
 
 void 
-checker() 
+checker(void) 
 {
     fptr = fopen("./source/data.txt", "rb+");
     if (fptr == NULL) {
@@ -69,7 +69,8 @@ main(int argc, char *argv[])
             return 0;
         }
         else if(strcmp("-h", argv[i]) == 0) {
-            printf("ini -h\n");
+            printf("-h : help");
+	    printf("new : new site");
             return 0;
         }
         else if(strcmp("new", argv[i]) == 0) {	
@@ -107,6 +108,10 @@ main(int argc, char *argv[])
             }
             return 0;
         }
+	else {
+		printf("salah perintah\ngunakan -h untuk info lebih lanjut\n");
+		return 0;
+	}
     }
 
     char txt[MAX_LENGTH], of[MAX_LENGTH];
