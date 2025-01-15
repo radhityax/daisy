@@ -16,6 +16,8 @@ markdown {
     int bold;
     int quote;
     int italic;
+    int hyperlink;
+    int code;
     int headingone;
     int headingtwo;
     int headingthree;
@@ -74,13 +76,20 @@ main(int argc, char *argv[])
             struct stat st;	
             if(stat("./source", &st) == 0) {
                 if(stat("./target", &st) == 0) {
+			if(stat("./media", &st) == 0) {
                     printf("./source dan ./target telah dibuat\n");
-                } else {
-                    mkdir("./target", 0700);
+			}
+		else {
+                    mkdir("./media", 0700);
                 }
+		}
+		else {
+		mkdir("./target", 0700);
+		}
             } else {
                 mkdir("./source", 0700);
                 mkdir("./target", 0700);
+		mkdir("./media", 0700);
             }
 
             fptr = fopen("./source/data.txt", "r");
@@ -105,7 +114,7 @@ main(int argc, char *argv[])
     int i, len;
 
     mdt.italic = 0, mdt.bold = 0, mdt.quote = 0, mdt.headingone = 0, mdt.headingtwo = 0;
-    mdt.headingthree = 0;
+    mdt.headingthree = 0, mdt.code = 0;
 
     const char *file_name = strrchr(argv[1], '/');
     if (file_name == NULL) {
@@ -123,7 +132,7 @@ main(int argc, char *argv[])
         return 1;
     }
 
-    FILE *fpto = fopen(of, "wb");
+    FILE *fpto = fopen(of, "w");
     if (fpto == NULL) {
         perror("galat membuat keluaran berkas fpto\n");
         fclose(fptr);
@@ -182,6 +191,15 @@ main(int argc, char *argv[])
                         mdt.italic = 0;
                     }
                 }
+		else if (txt[i] == '`' && (i == 0 || txt[i-1] != '\\')) {
+		if(!mdt.code) {
+			fprintf(fpto, "<code>");
+			mdt.code = 1;
+		} else {
+			fprintf(fpto, "</code>");
+			mdt.code = 0;
+		}
+		}
                 else if (i + 1 < len && txt[i] == '*' && txt[i+1] == '*' && (i == 0 || txt[i-1] != '\\')) {
                     if(!mdt.bold) {
                         fprintf(fpto, "<b>");
@@ -199,6 +217,7 @@ main(int argc, char *argv[])
             }
 
             if(mdt.italic) fprintf(fpto, "</i>");
+	    else if(mdt.code) fprintf(fpto, "</code>");
 	    else if(mdt.bold) fprintf(fpto, "</b>");
 	    else if(mdt.quote) fprintf(fpto, "</blockquote>");
 	    else if(mdt.headingone) {
@@ -213,12 +232,14 @@ main(int argc, char *argv[])
             else {
                 fprintf(fpto, "</p>\n");
             }
-            mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = 0;
+            mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
         }
     }
 
     fprintf(fpto, "</body>\n</html>");
     fclose(fptr);
     fclose(fpto);
+
+    printf("dokumen %s telah berhasil dibuat\n", of);
     return 0;
 }
