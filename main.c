@@ -25,16 +25,26 @@ typedef struct {
     int headingthree;
 } Markdown;
 
-Markdown mdt;
+Markdown mdt = { 
+    .italic = 0, 
+    .bold = 0,
+    .quote = 0,
+    .headingone = 0,
+    .headingtwo = 0, 
+    .headingthree = 0,
+    .code = 0
+};
 
 FILE *fptr, *fpto;
+
 char txt[MAX_LENGTH], of[MAX_LENGTH];
+
 int i, len;
 
 char *gantihuruf(const char *kata) {
     static char output[100];
     char *dot = strrchr(kata, '.');
-    
+
     if (dot == NULL || dot == kata) {
         snprintf(output, sizeof(output), "%s.html", kata);
     } else {
@@ -43,7 +53,7 @@ char *gantihuruf(const char *kata) {
         output[len] = '\0';
         strcat(output, ".html");
     }
-    
+
     return output;
 }
 
@@ -55,61 +65,40 @@ void checker(void) {
     }
 }
 
-void build(void) {
-    mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
+void
+doitalic(void) {
+    if (!mdt.italic) {
+        fprintf(fpto, "<i>");
+        mdt.italic = 1;
+    } else {
+        fprintf(fpto, "</i>");
+        mdt.italic = 0;
+    }
+}
 
-    fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n");
-    fprintf(fpto, "<style>body{background: #4caf50} blockquote{background: #fff}</style>\n</head>\n");
+void
+dobold(void) {
+    if (!mdt.bold) {
+        fprintf(fpto, "<b>");
+        mdt.bold = 1;
+        i++;
+    } else {
+        fprintf(fpto, "</b>");
+        mdt.bold = 0;
+        i++;
+    }
+}
 
-    while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
-        len = strlen(txt);
+void
+doblockquote(void) {
+    fprintf(fpto, "<blockquote>");
+    mdt.quote = 1;
+    while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
+}
 
-        if (len > 0 && txt[len-1] == '\n') {
-            txt[--len] = '\0';
-        }
-
-        mdt.headingone = mdt.headingtwo = mdt.quote = mdt.headingthree = 0;
-        if (len == 0) {
-            fprintf(fpto, "\n");
-        } else {
-            i = 0;
-
-            if (len > 1 && txt[0] == '#' && txt[1] != '\\') {
-                if (len > 2 && txt[1] == '#' && txt[2] != '\\') {
-                    if (len > 3 && txt[2] == '#' && txt[3] != '\\') {
-                        fprintf(fpto, "<h3>");
-                        mdt.headingthree = 1;
-                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
-                    } else {
-                        fprintf(fpto, "<h2>");
-                        mdt.headingtwo = 1;
-                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
-                    }
-                } else {
-                    fprintf(fpto, "<h1>");
-                    mdt.headingone = 1;
-                    while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
-                }
-            } else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
-                fprintf(fpto, "<blockquote>");
-                mdt.quote = 1;
-                while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
-            } else {
-                fprintf(fpto, "<p>");
-            }
-
-            for (i = 0; i < len; i++) {
-                
-                if (txt[i] == '_' && (i == 0 || txt[i-1] != '\\')) {
-                    if (!mdt.italic) {
-                        fprintf(fpto, "<i>");
-                        mdt.italic = 1;
-                    } else {
-                        fprintf(fpto, "</i>");
-                        mdt.italic = 0;
-                    }
-                } else if (txt[i] == '!' && (i == 0 || txt[i-1] != '\\')) {
-                    if (i + 1 < len && txt[i+1] == '[' && (i == 0 || txt[i] != '\\')) {
+void
+doimage(void) {
+if (i + 1 < len && txt[i+1] == '[' && (i == 0 || txt[i] != '\\')) {
                         int alt_start = i + 2;
                         int alt_end = -1;
                         int url_start = -1;
@@ -161,55 +150,106 @@ void build(void) {
                     } else {
                         fprintf(fpto, "!");
                     }
-                } else if (txt[i] == '[' && (i == 0 || txt[i-1] != '\\')) {
-                    int start_linkname = i + 1;
-                    int end_linkname = -1;
-                    int start_linkurl = -1;
-                    int end_linkurl = -1;
-                    int j;
+}
+void
+dohyperlink(void) {
+    int start_linkname = i + 1;
+    int end_linkname = -1;
+    int start_linkurl = -1;
+    int end_linkurl = -1;
+    int j;
 
-                    for (j = start_linkname; j < len; j++) {
-                        if (txt[j] == ']' && (j == 0 || txt[j-1] != '\\')) {
-                            end_linkname = j;
-                            break;
-                        }
-                    }
+    for (j = start_linkname; j < len; j++) {
+        if (txt[j] == ']' && (j == 0 || txt[j-1] != '\\')) {
+            end_linkname = j;
+            break;
+        }
+    }
 
-                    if (end_linkname != -1) {
-                        for (j = end_linkname + 1; j < len; j++) {
-                            if (txt[j] == '(' && (j == 0 || txt[j-1] != '\\')) {
-                                start_linkurl = j + 1;
-                                break;
-                            }
-                        }
+    if (end_linkname != -1) {
+        for (j = end_linkname + 1; j < len; j++) {
+            if (txt[j] == '(' && (j == 0 || txt[j-1] != '\\')) {
+                start_linkurl = j + 1;
+                break;
+            }
+        }
 
-                        if (start_linkurl != -1) {
-                            for (j = start_linkurl; j < len; j++) {
-                                if (txt[j] == ')' && (j == 0 || txt[j-1] != '\\')) {
-                                    end_linkurl = j;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+        if (start_linkurl != -1) {
+            for (j = start_linkurl; j < len; j++) {
+                if (txt[j] == ')' && (j == 0 || txt[j-1] != '\\')) {
+                    end_linkurl = j;
+                    break;
+                }
+            }
+        }
+    }
 
-                    if (end_linkname != -1 && end_linkurl != -1) {
-                        char linkname[100], linkurl[100];
-                        int linkname_len = end_linkname - start_linkname;
-                        int linkurl_len = end_linkurl - start_linkurl;
+    if (end_linkname != -1 && end_linkurl != -1) {
+        char linkname[100], linkurl[100];
+        int linkname_len = end_linkname - start_linkname;
+        int linkurl_len = end_linkurl - start_linkurl;
 
-                        strncpy(linkname, txt + start_linkname, linkname_len);
-                        linkname[linkname_len] = '\0';
+        strncpy(linkname, txt + start_linkname, linkname_len);
+        linkname[linkname_len] = '\0';
 
-                        strncpy(linkurl, txt + start_linkurl, linkurl_len);
-                        linkurl[linkurl_len] = '\0';
+        strncpy(linkurl, txt + start_linkurl, linkurl_len);
+        linkurl[linkurl_len] = '\0';
 
-                        fprintf(fpto, "<a href=\"%s\">%s</a>", linkurl, linkname);
+        fprintf(fpto, "<a href=\"%s\">%s</a>", linkurl, linkname);
 
-                        i = end_linkurl;
+        i = end_linkurl;
+    } else {
+        fprintf(fpto, "[");
+    }
+
+}
+void build(void) {
+    fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n");
+    fprintf(fpto, "<style>body{background: #4caf50} blockquote{background: #fff}</style>\n</head>\n");
+
+    while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
+        len = strlen(txt);
+
+        if (len > 0 && txt[len-1] == '\n') {
+            txt[--len] = '\0';
+        }
+
+        mdt.headingone = mdt.headingtwo = mdt.quote = mdt.headingthree = 0;
+        if (len == 0) {
+            fprintf(fpto, "\n");
+        } else {
+            i = 0;
+
+            if (len > 1 && txt[0] == '#' && txt[1] != '\\') {
+                if (len > 2 && txt[1] == '#' && txt[2] != '\\') {
+                    if (len > 3 && txt[2] == '#' && txt[3] != '\\') {
+                        fprintf(fpto, "<h3>");
+                        mdt.headingthree = 1;
+                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
                     } else {
-                        fprintf(fpto, "[");
+                        fprintf(fpto, "<h2>");
+                        mdt.headingtwo = 1;
+                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
                     }
+                } else {
+                    fprintf(fpto, "<h1>");
+                    mdt.headingone = 1;
+                    while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
+                }
+            } else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
+                doblockquote();
+            } else {
+                fprintf(fpto, "<p>");
+            }
+
+            for (i = 0; i < len; i++) {
+
+                if (txt[i] == '_' && (i == 0 || txt[i-1] != '\\')) {
+                    doitalic();
+                } else if (txt[i] == '!' && (i == 0 || txt[i-1] != '\\')) {
+                    doimage();
+                } else if (txt[i] == '[' && (i == 0 || txt[i-1] != '\\')) {
+                    dohyperlink();
                 } else if (txt[i] == '`' && (i == 0 || txt[i-1] != '\\')) {
                     if (!mdt.code) {
                         fprintf(fpto, "<code>");
@@ -219,15 +259,7 @@ void build(void) {
                         mdt.code = 0;
                     }
                 } else if (i + 1 < len && txt[i] == '*' && txt[i+1] == '*' && (i == 0 || txt[i-1] != '\\')) {
-                    if (!mdt.bold) {
-                        fprintf(fpto, "<b>");
-                        mdt.bold = 1;
-                        i++;
-                    } else {
-                        fprintf(fpto, "</b>");
-                        mdt.bold = 0;
-                        i++;
-                    }
+                    dobold(); 
                 } else {
                     fputc(txt[i], fpto);
                 }
@@ -264,9 +296,9 @@ int main(int argc, char *argv[]) {
             struct dirent *ent;
             if ((dir = opendir("./source")) != NULL) {
                 while ((ent = readdir(dir)) != NULL) {
-		/* d_type dari dirent.h
-		 * DT_REG == file reguler (Directory Type Regular file)
-		 */
+                    /* d_type dari dirent.h
+                     * DT_REG == file reguler (Directory Type Regular file)
+                     */
                     if (ent->d_type == DT_REG) { 
                         char path[MAX_LENGTH];
                         snprintf(path, sizeof(path), "./source/%s", ent->d_name);
@@ -278,7 +310,7 @@ int main(int argc, char *argv[]) {
 
                         char *new_name = gantihuruf(ent->d_name);
                         snprintf(of, sizeof(of), "./target/%s", new_name);
-                        
+
                         fpto = fopen(of, "w");
                         if (fpto == NULL) {
                             perror("galat membuat berkas keluaran");
