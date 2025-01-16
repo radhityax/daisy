@@ -48,9 +48,9 @@ char *gantihuruf(const char *kata) {
 }
 
 void checker(void) {
-    fptr = fopen("./source/data.txt", "rb+");
+    fptr = fopen("./source/index", "rb+");
     if (fptr == NULL) {
-        perror("galat checker buat ./source/data.txt");
+        perror("galat checker buat ./source/index");
         exit(1);
     }
 }
@@ -107,7 +107,12 @@ void build(void) {
                         fprintf(fpto, "</i>");
                         mdt.italic = 0;
                     }
-                } else if (txt[i] == '[' && (i == 0 || txt[i-1] != '\\')) {
+                } 
+		if(txt[i] == '!' && (i == 0 || txt[i-1] != '\\')) {
+			if(txt[i] == '[' && (i == 0 || txt[i-1] !='\\')) {
+			}
+		}
+		else if (txt[i] == '[' && (i == 0 || txt[i-1] != '\\')) {
                     int start_linkname = i + 1;
                     int end_linkname = -1;
                     int start_linkurl = -1;
@@ -254,17 +259,17 @@ int main(int argc, char *argv[]) {
             if (stat("./target", &st) == -1) mkdir("./target", 0700);
             if (stat("./media", &st) == -1) mkdir("./media", 0700);
 
-            fptr = fopen("./source/data.txt", "r");
+            fptr = fopen("./source/index", "r");
             if (fptr == NULL) {
-                fptr = fopen("./source/data.txt", "w");
+                fptr = fopen("./source/index", "w");
                 if (fptr == NULL) {
-                    perror("galat buat ./source/data.txt (fptr)");
+                    perror("galat buat ./source/index (fptr)");
                     exit(1);
                 } else {
-                    printf("sukses buat ./source/data.txt\n");
+                    printf("sukses buat ./source/index\n");
                 }
             } else {
-                printf("./source/data.txt sudah ada\n");
+                printf("./source/index sudah ada\n");
                 fclose(fptr);
             }
             return 0;
