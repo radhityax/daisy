@@ -72,7 +72,10 @@ void newsetup(void) {
     struct stat st;
     if (stat("./source", &st) == -1) mkdir("./source", 0700);
     if (stat("./target", &st) == -1) mkdir("./target", 0700);
-    if (stat("./media", &st) == -1) mkdir("./media", 0700);
+    if (stat("./media", &st) == -1) {
+        mkdir("./media", 0700);
+        add_css();
+    }
 
     fptr = fopen("./source/index", "r");
     if (fptr == NULL) {
@@ -245,7 +248,7 @@ dohyperlink(void) {
     }
 
 }
-void build(void) {
+void generate(void) {
     fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n");
     fprintf(fpto, "<style>body{background: #4caf50} blockquote{background: #fff}</style>\n</head>\n");
 
@@ -357,7 +360,7 @@ int main(int argc, char *argv[]) {
                             continue;
                         }
 
-                        build();  
+                        generate();  
 
                         fclose(fptr);
                         fclose(fpto);
