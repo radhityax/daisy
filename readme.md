@@ -1,15 +1,19 @@
 # daisy
 markdown parser dalam bahasa c
 
-penggunaan
+awal mula
+```bash
+$ daisy new
+```
 
-```
-$ daisy <input_file>
+bangun situs
+```bash
+$ daisy build
 ```
 
-bertanya?
-```
-$ daisy -h
+pertanyaan?
+```bash
+$ daisy help
 ```
 
 saat ini hanya mendukung:
@@ -17,3 +21,4 @@ saat ini hanya mendukung:
 - bold
 - italic
 - code
+- hyperlink
