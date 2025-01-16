@@ -202,7 +202,7 @@ void build(void) {
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        printf("penggunaan: %s <command> [berkas_input]\natau %s -h untuk info lebih lanjut\n", argv[0], argv[0]);
+        printf("penggunaan: %s <command>\natau %s help untuk info lebih lanjut\n", argv[0], argv[0]);
         return 1;
     }
 
