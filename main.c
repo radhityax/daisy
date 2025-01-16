@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp("-v", argv[i]) == 0) {
+        if (strcmp("about", argv[i]) == 0) {
             printf("daisy © radhitya.org\n");
             return 0;
         } else if (strcmp("build", argv[i]) == 0) {
@@ -250,8 +250,8 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
             return 0;
-        } else if (strcmp("-h", argv[i]) == 0) {
-            printf("-h : help\nnew : new site\nbuild : build all files in source/ to HTML\n");
+        } else if (strcmp("help", argv[i]) == 0) {
+            printf("help : help\nnew : new site\nbuild : build all files in source/ to HTML\n");
             return 0;
         } else if (strcmp("new", argv[i]) == 0) {
             struct stat st;
