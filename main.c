@@ -35,7 +35,8 @@ Markdown mdt = {
     .code = 0
 };
 
-FILE *fptr, *fpto;
+FILE *fptr, *fpto, 
+     *fcss, *fcss_target;
 
 char txt[MAX_LENGTH], of[MAX_LENGTH];
 
@@ -66,6 +67,32 @@ void add_css(void) {
             exit(1);
         }
     }
+}
+
+void copy_css(void) {
+    const char *css = "./media/style.css";
+    const char *css_target = "./target/style.css";
+    int x;
+
+    FILE *fcss = fopen(css, "r");
+    if (fcss == NULL) {
+        perror("Tidak bisa membuka file masukan CSS");
+        return; 
+    }
+
+    FILE *fcss_target = fopen(css_target, "w");
+    if (fcss_target == NULL) {
+        perror("Tidak bisa membuka file keluaran CSS");
+        fclose(fcss);
+        return;
+    }
+
+    while ((x = fgetc(fcss)) != EOF) {
+        fputc(x, fcss_target);
+    }
+
+    fclose(fcss);
+    fclose(fcss_target);
 }
 
 void newsetup(void) {
@@ -248,10 +275,14 @@ dohyperlink(void) {
     }
 
 }
+void build(void) {
+}
 void generate(void) {
-    fprintf(fpto, "<html>\n<body>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title>\n");
-    fprintf(fpto, "<style>body{background: #4caf50} blockquote{background: #fff}</style>\n</head>\n");
-
+    fprintf(fpto, "<html>\n<head>\n");
+    fprintf(fpto, "<meta charset=\"utf-8\"/>\n");
+    fprintf(fpto, "<title>daisy homepage</title>\n");
+    fprintf(fpto, "<link rel=\"stylesheet\" href=\"style.css\">\n"); 
+    fprintf(fpto, "</head>\n<body>\n");
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
 
@@ -352,7 +383,6 @@ int main(int argc, char *argv[]) {
 
                         char *new_name = gantihuruf(ent->d_name);
                         snprintf(of, sizeof(of), "./target/%s", new_name);
-
                         fpto = fopen(of, "w");
                         if (fpto == NULL) {
                             perror("galat membuat berkas keluaran");
@@ -360,7 +390,8 @@ int main(int argc, char *argv[]) {
                             continue;
                         }
 
-                        generate();  
+                        generate();
+                        copy_css();
 
                         fclose(fptr);
                         fclose(fpto);
