@@ -35,11 +35,8 @@ Markdown mdt = {
     .code = 0
 };
 
-FILE *fptr, *fpto, 
-     *fcss, *fcss_target;
-
+FILE *fptr, *fpto, *fcss, *fcss_target;
 char txt[MAX_LENGTH], of[MAX_LENGTH];
-
 int i, len;
 
 char *gantihuruf(const char *kata) {
@@ -66,6 +63,9 @@ void add_css(void) {
             perror("galat membuat css");
             exit(1);
         }
+        fclose(fpcss);
+    } else {
+        fclose(fpcss);
     }
 }
 
@@ -277,7 +277,7 @@ dohyperlink(void) {
 }
 void build(void) {
 }
-void generate(void) {
+  void generate(void) {
     fprintf(fpto, "<html>\n<head>\n");
     fprintf(fpto, "<meta charset=\"utf-8\"/>\n");
     fprintf(fpto, "<title>daisy homepage</title>\n");
@@ -298,22 +298,19 @@ void generate(void) {
             i = 0;
 
             if (len > 1 && txt[0] == '#' && txt[1] != '\\') {
-                if (len > 2 && txt[1] == '#' && txt[2] != '\\') {
-                    if (len > 3 && txt[2] == '#' && txt[3] != '\\') {
-                        fprintf(fpto, "<h3>");
-                        mdt.headingthree = 1;
-                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
-                    } else {
-                        fprintf(fpto, "<h2>");
-                        mdt.headingtwo = 1;
-                        while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
-                    }
-                } else {
-                    fprintf(fpto, "<h1>");
-                    mdt.headingone = 1;
-                    while (i < len && (txt[i] == '#' || txt[i] == ' ')) i++;
+                int level = 1;
+                while(i < len && txt[i] == '#' && level <= 3 && txt[i+1] != '\\') {
+                    level++;
+                    i++;
                 }
-
+                switch (level) {
+                    case 2: fprintf(fpto, "<h1>"); mdt.headingone = 1; break;
+                    case 3: fprintf(fpto, "<h2>"); mdt.headingtwo = 1; break;
+                    case 4: fprintf(fpto, "<h3>"); mdt.headingthree = 1; break;
+                    default: i = 0; break;
+                }                
+                while (i < len && txt[i] == ' ') i++;
+   
             } else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
                 doblockquote();
                 while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
@@ -352,7 +349,7 @@ void generate(void) {
     }
 
     fprintf(fpto, "</body>\n</html>");
-}
+  }
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
