@@ -4,6 +4,7 @@ src= main.c
 out= daisy
 
 ex=doc
+css=style.css
 
 install:
 	$(cc) $(cflags) $(src) -o $(out)
@@ -17,4 +18,5 @@ clean:
 test: install
 	./$(out) new
 	cp $(ex) ./source/
+	cp $(css) ./media/
 	./$(out) build
