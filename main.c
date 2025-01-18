@@ -120,6 +120,7 @@ void checker(void) {
     }
 }
 
+
 void
 doitalic(void) {
     if (!mdt.italic) {
@@ -287,7 +288,7 @@ void generate(void) {
         if (len == 0) {
             fprintf(fpto, "\n");
         } else {
-           i = 0;
+              i = 0;
 judul = 0;
 
 if (txt[0] == '#') {
@@ -303,12 +304,12 @@ if (txt[0] == '#') {
         char *title_start = txt + i;
         
         if (heading_count == 1) {
-            if (!judul) {  
+            if (!judul) {               
                 judul = 1;
                 fseek(fpto, 0, SEEK_SET);
                 fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
                         "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
-                        "</head>\n<body>\n\n\n\n\n", title_start);
+                        "</head>\n<body>\n\n\n\n", title_start);
                 fseek(fpto, 0, SEEK_END);
             }
             fprintf(fpto, "<h1>%s</h1>", title_start);
@@ -318,7 +319,6 @@ if (txt[0] == '#') {
         continue;
     }
 }
-
             else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
                 doblockquote();
                 while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
