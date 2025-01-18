@@ -1,9 +1,3 @@
-/* daisy
- * alif@radhitya.org
- *
- * thank you stackoverflow, geeksforgeeks, grok
- */
-
 #define _DEFAULT_SOURCE
 
 #include <stdio.h>
@@ -284,11 +278,11 @@ void generate(void) {
     fprintf(fpto, "<title>daisy homepage</title>\n");
     fprintf(fpto, "<link rel=\"stylesheet\" href=\"style.css\">\n"); 
     fprintf(fpto, "</head>\n<body>\n");
-
+    
+    int judul = 0;
+    
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
-
-        int judul = 0;
 
         if (len > 0 && txt[len - 1] == '\n') {
             txt[--len] = '\0';
@@ -302,26 +296,32 @@ void generate(void) {
             i = 0;
 
             if (txt[0] == '#') {
-            int heading_count = 0;
-            while (i < len && txt[i] == '#') { heading_count++; i++; }
+                int heading_count = 0;
 
-            if (i < len && txt[i] == ' ') {
-                i++;  // Skip space after #
-                const char *title_start = txt + i;
-                if (heading_count == 1 && !judul) {
-                    judul = 1;
-                    fseek(fpto, 0, SEEK_SET);
-                        fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
-                  "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
-                  "</head>\n<body>\n", title_start);
-                    fseek(fpto, 0, SEEK_END);
-                    fprintf(fpto, "<h1>%s</h1>", title_start);
-                } else {
-                    fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
+                while (i < len && txt[i] == '#') { 
+                    heading_count++; 
+                    i++; 
                 }
-                continue;
+
+                if (i < len && txt[i] == ' ') {
+                    i++;
+                    
+                    char *title_start = txt + i;
+                    
+                    if (heading_count == 1) {
+                        judul = 1;
+                        fseek(fpto, 0, SEEK_SET);
+                        fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
+                                "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
+                                "</head>\n<body>\n", title_start);
+                        fseek(fpto, 0, SEEK_END);
+                        fprintf(fpto, "<h1>%s</h1>", title_start);
+                    } else {
+                        fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
+                    }
+                    continue;
+                }
             }
-        }
 
 
             else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
