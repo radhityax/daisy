@@ -288,6 +288,8 @@ void generate(void) {
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
 
+        int judul = 0;
+
         if (len > 0 && txt[len - 1] == '\n') {
             txt[--len] = '\0';
         }
@@ -299,35 +301,31 @@ void generate(void) {
         } else {
             i = 0;
 
-            if (len > 0 && txt[0] == '#') {
-                int heading_count = 0;
-                while (i < len && txt[i] == '#') {
-                    heading_count++;
-                    i++;
-                }
+            if (txt[0] == '#') {
+            int heading_count = 0;
+            while (i < len && txt[i] == '#') { heading_count++; i++; }
 
-
-                if (i < len && txt[i] != '\\' && txt[i] == ' ') {
-                    if (heading_count == 1) {
-                        fprintf(fpto, "<h1>");
-                        mdt.headingone = 1;
-                    } else if (heading_count == 2) {
-                        fprintf(fpto, "<h2>");
-                        mdt.headingtwo = 1;
-                    } else if (heading_count == 3) {
-                        fprintf(fpto, "<h3>");
-                        mdt.headingthree = 1;
-                    }
-                    i++; 
+            if (i < len && txt[i] == ' ') {
+                i++;  // Skip space after #
+                const char *title_start = txt + i;
+                if (heading_count == 1 && !judul) {
+                    judul = 1;
+                    fseek(fpto, 0, SEEK_SET);
+                        fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
+                  "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
+                  "</head>\n<body>\n", title_start);
+                    fseek(fpto, 0, SEEK_END);
+                    fprintf(fpto, "<h1>%s</h1>", title_start);
                 } else {
-                    i = 0;
+                    fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
                 }
-            } 
+                continue;
+            }
+        }
 
 
             else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
-                fprintf(fpto, "<blockquote>");
-                mdt.quote = 1;
+                doblockquote();
                 while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
             } else {
                 fprintf(fpto, "<p>");
