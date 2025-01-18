@@ -31,7 +31,7 @@ Markdown mdt = {
 
 FILE *fptr, *fpto, *fcss, *fcss_target;
 char txt[MAX_LENGTH], of[MAX_LENGTH];
-int i, len;
+int i, len, judul;
 
 char *gantihuruf(const char *kata) {
     static char output[100];
@@ -273,14 +273,8 @@ void build(void) {
 }
 
 void generate(void) {
-    fprintf(fpto, "<html>\n<head>\n");
-    fprintf(fpto, "<meta charset=\"utf-8\"/>\n");
-    fprintf(fpto, "<title>daisy homepage</title>\n");
-    fprintf(fpto, "<link rel=\"stylesheet\" href=\"style.css\">\n"); 
-    fprintf(fpto, "</head>\n<body>\n");
-    
-    int judul = 0;
-    
+    fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n");
+     
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
 
@@ -293,36 +287,37 @@ void generate(void) {
         if (len == 0) {
             fprintf(fpto, "\n");
         } else {
-            i = 0;
+           i = 0;
+judul = 0;
 
-            if (txt[0] == '#') {
-                int heading_count = 0;
+if (txt[0] == '#') {
+    int heading_count = 0;
+    while (i < len && txt[i] == '#') { 
+        heading_count++; 
+        i++; 
+    }
 
-                while (i < len && txt[i] == '#') { 
-                    heading_count++; 
-                    i++; 
-                }
-
-                if (i < len && txt[i] == ' ') {
-                    i++;
-                    
-                    char *title_start = txt + i;
-                    
-                    if (heading_count == 1) {
-                        judul = 1;
-                        fseek(fpto, 0, SEEK_SET);
-                        fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
-                                "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
-                                "</head>\n<body>\n", title_start);
-                        fseek(fpto, 0, SEEK_END);
-                        fprintf(fpto, "<h1>%s</h1>", title_start);
-                    } else {
-                        fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
-                    }
-                    continue;
-                }
+    if (i < len && txt[i] == ' ') {
+        i++;
+        
+        char *title_start = txt + i;
+        
+        if (heading_count == 1) {
+            if (!judul) {  
+                judul = 1;
+                fseek(fpto, 0, SEEK_SET);
+                fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
+                        "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
+                        "</head>\n<body>\n\n\n\n\n", title_start);
+                fseek(fpto, 0, SEEK_END);
             }
-
+            fprintf(fpto, "<h1>%s</h1>", title_start);
+        } else {
+            fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
+        }
+        continue;
+    }
+}
 
             else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
                 doblockquote();
