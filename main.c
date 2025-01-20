@@ -64,7 +64,7 @@ void add_css(void) {
     }
 }
 
-char * doheader() {
+char *doheader() {
     FILE *fheader = fopen("./media/header", "r");
     if (fheader == NULL) {
         fheader = fopen("./media/header", "w");
@@ -72,21 +72,22 @@ char * doheader() {
             perror("galat buat header");
             return NULL;
         }
-    }
-
-    char *buffer = malloc(1000 * sizeof(char));
-    if(buffer == NULL) {
-        perror("galat alokasi memori buffer");
         fclose(fheader);
         return NULL;
     }
 
+    static char buffer[MAX_LENGTH] = {0};
+    size_t bytes_read;
 
-    while(fgets(buffer, 1000, fheader) != NULL) {
-        printf("%s\n", buffer);
-    }
+    bytes_read = fread(buffer, 1, sizeof(buffer) - 1, fheader);
+    buffer[bytes_read] = '\0';
+
     fclose(fheader);
-    return buffer;
+    if (bytes_read > 0) {
+        return buffer;
+    } else {
+        return NULL;
+    }
 }
 
 void copy_css(void) {
@@ -303,7 +304,8 @@ void generate(void) {
     header = doheader();
 
     fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n");
-     
+    fprintf(fpto, "%s\n", header);
+
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
 
