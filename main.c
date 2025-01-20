@@ -32,6 +32,7 @@ Markdown mdt = {
 FILE *fptr, *fpto, *fcss, *fcss_target;
 char txt[MAX_LENGTH], of[MAX_LENGTH];
 int i, len, judul;
+char *header;
 
 char *gantihuruf(const char *kata) {
     static char output[100];
@@ -61,6 +62,31 @@ void add_css(void) {
     } else {
         fclose(fpcss);
     }
+}
+
+char * doheader() {
+    FILE *fheader = fopen("./media/header", "r");
+    if (fheader == NULL) {
+        fheader = fopen("./media/header", "w");
+        if (fheader == NULL) {
+            perror("galat buat header");
+            return NULL;
+        }
+    }
+
+    char *buffer = malloc(1000 * sizeof(char));
+    if(buffer == NULL) {
+        perror("galat alokasi memori buffer");
+        fclose(fheader);
+        return NULL;
+    }
+
+
+    while(fgets(buffer, 1000, fheader) != NULL) {
+        printf("%s\n", buffer);
+    }
+    fclose(fheader);
+    return buffer;
 }
 
 void copy_css(void) {
@@ -274,6 +300,8 @@ void build(void) {
 }
 
 void generate(void) {
+    header = doheader();
+
     fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n");
      
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
