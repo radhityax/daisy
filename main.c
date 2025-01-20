@@ -32,7 +32,7 @@ Markdown mdt = {
 FILE *fptr, *fpto, *fcss, *fcss_target;
 char txt[MAX_LENGTH], of[MAX_LENGTH];
 int i, len, judul;
-char *header;
+char *header, *footer;
 
 char *gantihuruf(const char *kata) {
     static char output[100];
@@ -64,10 +64,10 @@ void add_css(void) {
     }
 }
 
-char *doheader() {
-    FILE *fheader = fopen("./media/header", "r");
+char *doinsert(const char * nama) {
+    FILE *fheader = fopen(nama, "r");
     if (fheader == NULL) {
-        fheader = fopen("./media/header", "w");
+        fheader = fopen(nama, "w");
         if (fheader == NULL) {
             perror("galat buat header");
             return NULL;
@@ -301,11 +301,15 @@ void build(void) {
 }
 
 void generate(void) {
-    header = doheader();
+    
+    header = doinsert("./media/header.html");
 
     fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n");
+    if( header == NULL ) {
+        printf("header NULL\n");
+    } else {
     fprintf(fpto, "%s\n", header);
-
+    }
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
 
@@ -386,6 +390,12 @@ if (txt[0] == '#') {
         }
     }
 
+    footer = doinsert("./media/footer.html");
+    if(footer == NULL) {
+	printf("gak ada footer bro :(\n");
+    } else {
+    fprintf(fpto, "%s", footer);
+    }
     fprintf(fpto, "</body>\n</html>");
 }
 
