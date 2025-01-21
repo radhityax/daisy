@@ -108,19 +108,24 @@ void get_posts(const char *path, Post *posts, int *count) {
 
 void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
      header = doinsert("./media/header.html");
-     footer = doinsert("./media/footer.html");
-    int total_pages = (total_posts + posts_per_page - 1) / posts_per_page;
+     int total_pages = (total_posts + posts_per_page - 1) / posts_per_page;
 
     FILE *archive = fopen("./target/archive.html", "w");
     if (archive == NULL) {
 	perror("Galat archive.html");
 	return;
     }
+    printf("%s", header);
     fprintf(archive, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n");
     fprintf(archive, "<title>Archive - %s</title>", SUBTITLE);
     fprintf(archive, "<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n");
+    	 if (header != NULL) {
+        fprintf(archive, "%s", header);
+    } else {
+        fprintf(stderr, "ga bisa buat header wqwqwq");
+    }
+
     fprintf(archive, "<body>");
-   
       
     fprintf(archive,"<h1>Archive</h1><ul>");
 	for(int page = 0; page < total_pages; page++) {
@@ -137,6 +142,13 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
 	    fprintf(page_file, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n");
 	    fprintf(page_file, "<title>Page %d - %s</title>", page+1, SUBTITLE);
 	    fprintf(page_file, "<link rel=\"stylesheet\" href=\"style.css\">\n</head>");
+	   
+    	 if (header != NULL) {
+        fprintf(page_file, "%s", header);
+    } else {
+        fprintf(stderr, "ga bisa buat header wqwqwq");
+    }
+
 	    fprintf(page_file,"<h1>Page %d</h1><ul>", page + 1);
 		    
   int start = page * posts_per_page;
@@ -148,6 +160,7 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
             fprintf(page_file, "<li><a href='%s'>%s</a></li>", html_name, posts[i].name);
         }
         fprintf(page_file, "</ul>\n<a href='archive.html'>kembali</a>");
+	       footer = doinsert("./media/footer.html");
 	 if (footer != NULL) {
         fprintf(page_file, "%s", footer);
     } else {
