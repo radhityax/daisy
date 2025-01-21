@@ -40,7 +40,9 @@ FILE *fptr, *fpto, *fcss, *fcss_target;
 char txt[MAX_LENGTH], of[MAX_LENGTH];
 int i, len, judul;
 char *header, *footer;
-
+char *headertwo;
+char *doinsert(const char * nama);
+    
 char *gantihuruf(const char *kata) {
     static char output[100];
     char *dot = strrchr(kata, '.');
@@ -105,6 +107,8 @@ void get_posts(const char *path, Post *posts, int *count) {
 }
 
 void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
+     header = doinsert("./media/header.html");
+     footer = doinsert("./media/footer.html");
     int total_pages = (total_posts + posts_per_page - 1) / posts_per_page;
 
     FILE *archive = fopen("./target/archive.html", "w");
@@ -115,8 +119,10 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
     fprintf(archive, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n");
     fprintf(archive, "<title>Archive - %s</title>", SUBTITLE);
     fprintf(archive, "<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n");
-        fprintf(archive, "<body><h1>Archive</h1><ul>");
-
+    fprintf(archive, "<body>");
+   
+      
+    fprintf(archive,"<h1>Archive</h1><ul>");
 	for(int page = 0; page < total_pages; page++) {
 	    fprintf(archive, "<li><a href='page%d.html'>Page %d</a></li>", page+1, page+1);
 	    
@@ -141,14 +147,28 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
 	    char *html_name = gantihuruf(posts[i].name);
             fprintf(page_file, "<li><a href='%s'>%s</a></li>", html_name, posts[i].name);
         }
-        fprintf(page_file, "</ul>"
-		"<a href='archive.html'>kembali</a>"
+        fprintf(page_file, "</ul>\n<a href='archive.html'>kembali</a>");
+	 if (footer != NULL) {
+        fprintf(page_file, "%s", footer);
+    } else {
+        fprintf(stderr, "ga bisa buat footer wqwqwq");
+    }
+	 fprintf(page_file,
 		"</body></html>"
 	    );
         fclose(page_file);
     }
 
-    fprintf(archive, "</ul></body></html>");
+	fprintf(archive, "</ul>");
+    
+ if (footer != NULL) {
+        fprintf(archive, "%s", footer);
+    } else {
+        fprintf(stderr, "ga bisa buat footer wqwqwq");
+    }
+    
+    
+	fprintf(archive,"</body></html>");
     fclose(archive);
 }
 
@@ -238,9 +258,6 @@ void newsetup(void) {
         fclose(fptr);
     }
 }
-#include <dirent.h>
-#include <stdio.h>
-
 void checker(void) {
     DIR *dir;
 
@@ -508,11 +525,13 @@ if (txt[0] == '#') {
     }
 
     footer = doinsert("./media/footer.html");
+    
     if(footer == NULL) {
 	printf("gak ada footer bro :(\n");
     } else {
     fprintf(fpto, "%s", footer);
     }
+    
     fprintf(fpto, "</body>\n</html>");
 }
 
