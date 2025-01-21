@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#define MAX_LENGTH 1000
+#define MAX_LENGTH 10000
 
 typedef struct {
     int bold;
@@ -67,27 +67,22 @@ void add_css(void) {
 char *doinsert(const char * nama) {
     FILE *fheader = fopen(nama, "r");
     if (fheader == NULL) {
-        fheader = fopen(nama, "w");
-        if (fheader == NULL) {
-            perror("galat buat header");
-            return NULL;
-        }
-        fclose(fheader);
+        perror("galat membuka header");
         return NULL;
     }
 
     static char buffer[MAX_LENGTH] = {0};
-    size_t bytes_read;
-
-    bytes_read = fread(buffer, 1, sizeof(buffer) - 1, fheader);
+    size_t bytes_read = fread(buffer, 1, sizeof(buffer) - 1, fheader);
     buffer[bytes_read] = '\0';
 
     fclose(fheader);
-    if (bytes_read > 0) {
-        return buffer;
-    } else {
+    if (bytes_read == 0) {
+        fprintf(stderr, "Berkas kosong atau ada kesalahan membaca %s\n", nama);
         return NULL;
     }
+
+//    printf("Header content: %s\n", buffer);
+    return buffer;
 }
 
 void copy_css(void) {
@@ -304,12 +299,15 @@ void generate(void) {
     
     header = doinsert("./media/header.html");
 
-    fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n");
+    fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>");
+    fprintf(fpto, "s");
     if( header == NULL ) {
         printf("header NULL\n");
     } else {
     fprintf(fpto, "%s\n", header);
+    fprintf(stderr, "Debug: Header content: %s\n", header);
     }
+    
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
         len = strlen(txt);
 
@@ -343,8 +341,9 @@ if (txt[0] == '#') {
                 fseek(fpto, 0, SEEK_SET);
                 fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
                         "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
-                        "</head>\n<body>\n\n\n\n", title_start);
-                fseek(fpto, 0, SEEK_END);
+                        "</head><body>", title_start);
+		    fprintf(fpto, "%s\n", header);
+                //fseek(fpto, 0, SEEK_END);
             }
             fprintf(fpto, "<h1>%s</h1>", title_start);
         } else {
