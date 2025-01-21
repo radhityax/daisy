@@ -8,6 +8,13 @@
 
 #define MAX_LENGTH 10000
 
+#define POSTS_PER_PAGE 5
+#define MAX_PATH 200
+
+typedef struct {
+    char name[MAX_PATH];
+} Post;
+
 typedef struct {
     int bold;
     int quote;
@@ -50,6 +57,91 @@ char *gantihuruf(const char *kata) {
     return output;
 }
 
+int compare_posts(const void *a, const void *b) {
+    return strcmp(((Post *)a)->name, ((Post*)b)->name);
+}
+
+int count_files(const char *path) {
+    DIR *dir;
+    struct dirent *ent;
+    int count = 0;
+
+    if((dir = opendir(path)) == NULL) {
+	perror("Galat buka directory opendir(path)");
+	return -1;
+    }
+
+    while ((ent = readdir(dir)) != NULL) {
+	if(ent->d_type == DT_REG) {
+	    count++;
+	}
+    }
+    closedir(dir);
+    return count;
+}
+
+void get_posts(const char *path, Post *posts, int *count) {
+    DIR *dir;
+    struct dirent *ent;
+    int index = 0;
+
+    if((dir = opendir(path)) == NULL) {
+	perror("Error opening directory");
+	return;
+    }
+
+    while((ent = readdir(dir)) != NULL) {
+	if(ent->d_type == DT_REG) {
+	    strncpy(posts[index].name, ent->d_name, MAX_PATH - 1);
+	    posts[index].name[MAX_PATH - 1] = '\0';
+	    index++;
+	}
+    }
+    *count = index;
+    closedir(dir);
+
+    qsort(posts, *count, sizeof(Post), compare_posts);
+    
+}
+
+void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
+    int total_pages = (total_posts + posts_per_page - 1) / posts_per_page;
+
+    FILE *archive = fopen("./target/archive.html", "w");
+    if (archive == NULL) {
+	perror("Galat archive.html");
+	return;
+    }
+        fprintf(archive, "<html><body><h1>Archive</h1><ul>");
+
+	for(int page = 0; page < total_pages; page++) {
+	    fprintf(archive, "<li><a href='page%d.html'>Page %d</a></li>", page+1, page+1);
+	    
+	    char page_name[100];
+	    snprintf(page_name, sizeof(page_name), "./target/page%d.html", page+1);
+	    FILE *page_file = fopen(page_name, "w");
+	    if(page_file == NULL) {
+		perror("Gx bisa buat page");
+		continue;
+	    }
+	            fprintf(page_file, "<html><body><h1>Page %d</h1><ul>", page + 1);
+  int start = page * posts_per_page;
+        int end = start + posts_per_page;
+        if (end > total_posts) end = total_posts;
+
+        for (int i = start; i < end; i++) {
+	    char *html_name = gantihuruf(posts[i].name);
+            fprintf(page_file, "<li><a href='%s'>%s</a></li>", html_name, posts[i].name);
+        }
+
+        fprintf(page_file, "</ul></body></html>");
+        fclose(page_file);
+    }
+
+    fprintf(archive, "</ul></body></html>");
+    fclose(archive);
+}
+
 void add_css(void) {
     FILE *fpcss = fopen("./media/style.css", "r");
     if (fpcss == NULL) {
@@ -66,9 +158,12 @@ void add_css(void) {
 
 char *doinsert(const char * nama) {
     FILE *fheader = fopen(nama, "r");
+    if(fheader == NULL) {
+	fheader = fopen(nama, "w");
     if (fheader == NULL) {
         perror("galat membuka header");
         return NULL;
+    }
     }
 
     static char buffer[MAX_LENGTH] = {0};
@@ -81,7 +176,6 @@ char *doinsert(const char * nama) {
         return NULL;
     }
 
-//    printf("Header content: %s\n", buffer);
     return buffer;
 }
 
@@ -300,12 +394,11 @@ void generate(void) {
     header = doinsert("./media/header.html");
 
     fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>");
-    fprintf(fpto, "s");
+
     if( header == NULL ) {
         printf("header NULL\n");
     } else {
     fprintf(fpto, "%s\n", header);
-    fprintf(stderr, "Debug: Header content: %s\n", header);
     }
     
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
@@ -342,8 +435,7 @@ if (txt[0] == '#') {
                 fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
                         "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
                         "</head><body>", title_start);
-		    fprintf(fpto, "%s\n", header);
-                //fseek(fpto, 0, SEEK_END);
+		fprintf(fpto, "%s\n", header);
             }
             fprintf(fpto, "<h1>%s</h1>", title_start);
         } else {
@@ -412,10 +504,27 @@ int main(int argc, char *argv[]) {
             DIR *dir;
             struct dirent *ent;
             if ((dir = opendir("./source")) != NULL) {
-                while ((ent = readdir(dir)) != NULL) {
+           
+		    int count = count_files("./source");
+		    if(count == -1) {
+			perror("ga bisa ngitung hehe");
+			return 1;
+		    }
+
+		    Post *posts = malloc(count * sizeof(Post));
+		    if (posts == NULL) {
+			perror("Memory allocation failed");
+			return 1;
+		    }
+		            get_posts("./source", posts, &count);
+        generate_pagination(posts, count, POSTS_PER_PAGE);
+        free(posts);
+
+	while ((ent = readdir(dir)) != NULL) {
                     /* d_type dari dirent.h
                      * DT_REG == file reguler (Directory Type Regular file)
                      */
+	
                     if (ent->d_type == DT_REG) { 
                         char path[MAX_LENGTH];
                         snprintf(path, sizeof(path), "./source/%s", ent->d_name);
@@ -439,9 +548,9 @@ int main(int argc, char *argv[]) {
 
                         fclose(fptr);
                         fclose(fpto);
-                        printf("dokumen %s telah berhasil dibuat\n", of);
                     }
                 }
+	        printf("dokumen telah berhasil dibuat\n");
                 closedir(dir);
             } else {
                 perror("galat membuka direktori ./source");
