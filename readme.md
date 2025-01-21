@@ -1,5 +1,6 @@
 # daisy
-markdown parser dalam bahasa c
+
+penghasil situs statis dalam bahasa C
 
 awal mula
 ```bash
@@ -22,3 +23,4 @@ saat ini hanya mendukung:
 - italic
 - code
 - hyperlink
+- gambar
