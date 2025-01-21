@@ -1,5 +1,5 @@
 cc= cc
-cflags = -Wall -Wextra -std=c99 -pedantic
+cflags = -os -Wall -Wextra -std=c99 -pedantic
 src= main.c
 out= daisy
 
