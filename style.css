@@ -10,3 +10,14 @@ body {
 blockquote {
     background:#1A3440;
 }
+
+a:link {
+    color: #EAE2C6;
+}
+a:visited {
+    color: #EAE2C6
+}
+a:hover {
+    color: #01242e;
+    background-color: #fff;
+}

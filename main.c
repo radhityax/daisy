@@ -7,7 +7,7 @@
 #include <dirent.h>
 
 #define MAX_LENGTH 10000
-
+#define SUBTITLE "daisy"
 #define POSTS_PER_PAGE 5
 #define MAX_PATH 200
 
@@ -112,7 +112,10 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
 	perror("Galat archive.html");
 	return;
     }
-        fprintf(archive, "<html><body><h1>Archive</h1><ul>");
+    fprintf(archive, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n");
+    fprintf(archive, "<title>Archive - %s</title>", SUBTITLE);
+    fprintf(archive, "<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n");
+        fprintf(archive, "<body><h1>Archive</h1><ul>");
 
 	for(int page = 0; page < total_pages; page++) {
 	    fprintf(archive, "<li><a href='page%d.html'>Page %d</a></li>", page+1, page+1);
@@ -124,7 +127,12 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
 		perror("Gx bisa buat page");
 		continue;
 	    }
-	            fprintf(page_file, "<html><body><h1>Page %d</h1><ul>", page + 1);
+
+	    fprintf(page_file, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n");
+	    fprintf(page_file, "<title>Page %d - %s</title>", page+1, SUBTITLE);
+	    fprintf(page_file, "<link rel=\"stylesheet\" href=\"style.css\">\n</head>");
+	    fprintf(page_file,"<h1>Page %d</h1><ul>", page + 1);
+		    
   int start = page * posts_per_page;
         int end = start + posts_per_page;
         if (end > total_posts) end = total_posts;
@@ -133,8 +141,10 @@ void generate_pagination(Post *posts, int total_posts, int posts_per_page) {
 	    char *html_name = gantihuruf(posts[i].name);
             fprintf(page_file, "<li><a href='%s'>%s</a></li>", html_name, posts[i].name);
         }
-
-        fprintf(page_file, "</ul></body></html>");
+        fprintf(page_file, "</ul>"
+		"<a href='archive.html'>kembali</a>"
+		"</body></html>"
+	    );
         fclose(page_file);
     }
 
@@ -228,11 +238,27 @@ void newsetup(void) {
         fclose(fptr);
     }
 }
+#include <dirent.h>
+#include <stdio.h>
+
 void checker(void) {
-    fptr = fopen("./source/index", "rb+");
-    if (fptr == NULL) {
-        perror("galat checker buat ./source/index");
-        exit(1);
+    DIR *dir;
+
+    if ((dir = opendir("./media")) != NULL) {
+        printf("Direktori media ditemukan.\n");
+        closedir(dir);
+    } else {
+        if ((dir = opendir("./source")) != NULL) {
+            printf("Direktori source ditemukan.\n");
+            closedir(dir);
+        } else {
+            if ((dir = opendir("./target")) != NULL) {
+                printf("Direktori target ditemukan.\n");
+                closedir(dir);
+            } else {
+                printf("Tidak ada direktori yang ditemukan: media, source, atau target.\n");
+            }
+        }
     }
 }
 
@@ -393,7 +419,7 @@ void generate(void) {
     
     header = doinsert("./media/header.html");
 
-    fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>daisy homepage</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>");
+    fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>homepage - %s</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>", SUBTITLE);
 
     if( header == NULL ) {
         printf("header NULL\n");
@@ -433,8 +459,8 @@ if (txt[0] == '#') {
                 judul = 1;
                 fseek(fpto, 0, SEEK_SET);
                 fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
-                        "<title>%s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
-                        "</head><body>", title_start);
+                        "<title>%s - %s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
+                        "</head><body>", title_start, SUBTITLE);
 		fprintf(fpto, "%s\n", header);
             }
             fprintf(fpto, "<h1>%s</h1>", title_start);
