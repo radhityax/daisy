@@ -21,7 +21,6 @@ typedef struct {
     int italic;
     int hyperlink;
     int code;
-    int blockcode;
     int headingone;
     int headingtwo;
     int headingthree;
@@ -251,10 +250,7 @@ void copy_css(void) {
 
 void newsetup(void) {
     struct stat st;
-    if (stat("./source", &st) == -1) {
-	mkdir("./source", 0700);
-	mkdir("./source/post", 0700);
-    }
+    if (stat("./source", &st) == -1) mkdir("./source", 0700);
     if (stat("./target", &st) == -1) mkdir("./target", 0700);
     if (stat("./media", &st) == -1) {
         mkdir("./media", 0700);
@@ -393,7 +389,7 @@ docode(void) {
         mdt.code = 0;
     }
 }
-    
+
 void
 dohyperlink(void) {
     int start_linkname = i + 1;
@@ -446,6 +442,8 @@ dohyperlink(void) {
     }
 
 }
+void build(void) {
+}
 
 void generate(void) {
     
@@ -466,14 +464,13 @@ void generate(void) {
             txt[--len] = '\0';
         }
 
-        mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.quote = mdt.blockcode = 0;
+        mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.quote = 0;
 
         if (len == 0) {
             fprintf(fpto, "\n");
         } else {
               i = 0;
 judul = 0;
-
 
 if (txt[0] == '#') {
     int heading_count = 0;
@@ -501,27 +498,6 @@ if (txt[0] == '#') {
             fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
         }
         continue;
-    }
-}
-else if(len > 1 && txt[0] == '`' && txt[1] == '`' && txt[2] == '`' && (i == 0 || txt[3] != '\\')) {
-        if (!mdt.blockcode) {
-        fprintf(fpto, "<pre><code>");
-        mdt.blockcode = 1;
-	 i += 3;
-    } else {
-        fprintf(fpto, "</code></pre>");
-        mdt.blockcode = 0;
-	 i += 3;
-	 continue;
-    }
-} else if (mdt.blockcode) {
-    int start = i;
-    while (i < len && !(i + 2 < len && txt[i] == '`' && txt[i+1] == '`' && txt[i+2] == '`' && (i == 0 || txt[i+3] != '\\'))) {
-	i++;
-    }
-        fprintf(fpto, "%.*s", i - start, txt + start);
- if (i < len && i + 2 < len && txt[i] == '`' && txt[i+1] == '`' && txt[i+2] == '`') {
-        i += 2; 
     }
 }
             else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
@@ -555,10 +531,9 @@ else if(len > 1 && txt[0] == '`' && txt[1] == '`' && txt[2] == '`' && (i == 0 ||
             else if (mdt.headingone) fprintf(fpto, "</h1>\n");
             else if (mdt.headingtwo) fprintf(fpto, "</h2>\n");
             else if (mdt.headingthree) fprintf(fpto, "</h3>\n");
+            if (!(mdt.headingone || mdt.headingtwo || mdt.headingthree || mdt.quote)) fprintf(fpto, "</p>\n");
 
-            if (!(mdt.headingone || mdt.headingtwo || mdt.headingthree || mdt.quote || mdt.blockcode)) fprintf(fpto, "</p>\n");
-
-            mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = mdt.blockcode = 0;
+            mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
         }
     }
 
@@ -655,4 +630,3 @@ int main(int argc, char *argv[]) {
     printf("salah perintah\n");
     return 1;
 }
-

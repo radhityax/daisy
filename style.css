@@ -1,5 +1,5 @@
 body {
-    background: #000;
+    background: #01242e;
     color: #fff;
     font-family: sans-serif;
     margin: auto;
@@ -8,16 +8,16 @@ body {
 }
 
 blockquote {
-    background:#880808;
+    background:#1A3440;
 }
 
 a:link {
-    color: #880808;
+    color: #EAE2C6;
 }
 a:visited {
-    color: #880808;
+    color: #EAE2C6
 }
 a:hover {
-    color: #000;
+    color: #01242e;
     background-color: #fff;
 }
