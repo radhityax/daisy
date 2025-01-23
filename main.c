@@ -21,6 +21,7 @@ typedef struct {
     int italic;
     int hyperlink;
     int code;
+    int blockcode;
     int headingone;
     int headingtwo;
     int headingthree;
@@ -445,16 +446,16 @@ dohyperlink(void) {
 void build(void) {
 }
 
+
 void generate(void) {
-    
     header = doinsert("./media/header.html");
 
     fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n<title>homepage - %s</title><link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>", SUBTITLE);
 
-    if( header == NULL ) {
+    if (header == NULL) {
         printf("header NULL\n");
     } else {
-    fprintf(fpto, "%s\n", header);
+        fprintf(fpto, "%s\n", header);
     }
     
     while (fgets(txt, MAX_LENGTH, fptr) != NULL) {
@@ -464,48 +465,62 @@ void generate(void) {
             txt[--len] = '\0';
         }
 
-        mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.quote = 0;
+        mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.quote = mdt.blockcode = 0;
 
         if (len == 0) {
             fprintf(fpto, "\n");
         } else {
-              i = 0;
-judul = 0;
+            i = 0;
+            judul = 0;
 
-if (txt[0] == '#') {
-    int heading_count = 0;
-    while (i < len && txt[i] == '#') { 
-        heading_count++; 
-        i++; 
-    }
+            if (txt[0] == '#') {
+                int heading_count = 0;
+                while (i < len && txt[i] == '#') { 
+                    heading_count++; 
+                    i++; 
+                }
 
-    if (i < len && txt[i] == ' ') {
-        i++;
-        
-        char *title_start = txt + i;
-        
-        if (heading_count == 1) {
-            if (!judul) {               
-                judul = 1;
-                fseek(fpto, 0, SEEK_SET);
-                fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
-                        "<title>%s - %s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
-                        "</head><body>", title_start, SUBTITLE);
-		fprintf(fpto, "%s\n", header);
+                if (i < len && txt[i] == ' ') {
+                    i++;
+                    
+                    char *title_start = txt + i;
+                    
+                    if (heading_count == 1) {
+                        if (!judul) {               
+                            judul = 1;
+                            fseek(fpto, 0, SEEK_SET);
+                            fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
+                                    "<title>%s - %s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
+                                    "</head><body>", title_start, SUBTITLE);
+                            fprintf(fpto, "%s\n", header);
+                        }
+                        fprintf(fpto, "<h1>%s</h1>", title_start);
+                    } else {
+                        fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
+                    }
+                    continue;
+                }
             }
-            fprintf(fpto, "<h1>%s</h1>", title_start);
-        } else {
-            fprintf(fpto, "<h%d>%s</h%d>\n", heading_count, title_start, heading_count);
-        }
-        continue;
-    }
-}
             else if (len > 1 && txt[0] == '>' && txt[1] != '\\') {
                 doblockquote();
                 while (i < len && (txt[i] == '>' || txt[i] == ' ')) i++;
+            }
+            else if (len > 2 && txt[0] == '`' && txt[1] == '`' && txt[2] == '`' && (i == 0 || txt[i-1] != '\\')) {
+                if (mdt.blockcode == 0) {
+                    fprintf(fpto, "<pre><code>");
+                    mdt.blockcode = 1;
+                    i += 3;
+                } else {
+                    fprintf(fpto, "</code></pre>");
+                    mdt.blockcode = 0;
+                    i += 3;
+                }
+                continue;
+            } else if (mdt.blockcode == 1) {
+                fprintf(fpto, "%s\n", txt);
+                continue;
             } else {
                 fprintf(fpto, "<p>");
-                i = 0;
             }
 
             for (; i < len; i++) {
@@ -525,13 +540,13 @@ if (txt[0] == '#') {
             }
 
             if (mdt.italic) fprintf(fpto, "</i>");
-            else if (mdt.code) fprintf(fpto, "</code>");
-            else if (mdt.bold) fprintf(fpto, "</b>");
-            else if (mdt.quote) fprintf(fpto, "</blockquote>\n");
-            else if (mdt.headingone) fprintf(fpto, "</h1>\n");
-            else if (mdt.headingtwo) fprintf(fpto, "</h2>\n");
-            else if (mdt.headingthree) fprintf(fpto, "</h3>\n");
-            if (!(mdt.headingone || mdt.headingtwo || mdt.headingthree || mdt.quote)) fprintf(fpto, "</p>\n");
+            if (mdt.code) fprintf(fpto, "</code>");
+            if (mdt.bold) fprintf(fpto, "</b>");
+            if (mdt.quote) fprintf(fpto, "</blockquote>\n");
+            if (mdt.headingone) fprintf(fpto, "</h1>\n");
+            if (mdt.headingtwo) fprintf(fpto, "</h2>\n");
+            if (mdt.headingthree) fprintf(fpto, "</h3>\n");
+            if (!(mdt.headingone || mdt.headingtwo || mdt.headingthree || mdt.quote || mdt.blockcode)) fprintf(fpto, "</p>\n");
 
             mdt.italic = mdt.bold = mdt.quote = mdt.headingone = mdt.headingtwo = mdt.headingthree = mdt.code = 0;
         }
@@ -539,10 +554,10 @@ if (txt[0] == '#') {
 
     footer = doinsert("./media/footer.html");
     
-    if(footer == NULL) {
-	printf("gak ada footer bro :(\n");
+    if (footer == NULL) {
+        printf("gak ada footer bro :(\n");
     } else {
-    fprintf(fpto, "%s", footer);
+        fprintf(fpto, "%s", footer);
     }
     
     fprintf(fpto, "</body>\n</html>");
