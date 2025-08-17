@@ -418,9 +418,10 @@ void generate(void) {
 
 	fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n");
 	fprintf(fpto, "<title>homepage - %s</title>", SUBTITLE);
-	fprintf(fpto, "link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>");
+	fprintf(fpto, "<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>");
 
 	if (header == NULL) {
+		fprintf(fpto, "<header><h1>this is daisy</h1></header>\n");
 	} else {
 		fprintf(fpto, "%s\n", header);
 	}
@@ -459,7 +460,7 @@ void generate(void) {
 							fprintf(fpto, "<html>\n<head>\n<meta charset=\"utf-8\"/>\n"
 									"<title>%s - %s</title>\n<link rel=\"stylesheet\" href=\"style.css\">\n"
 									"</head><body>", title_start, SUBTITLE);
-							if ( header == NULL ) {
+							if (header == NULL) {
 								fprintf(fpto, "<header><h1>daisy's header</h1></header>");
 							} else {
 								fprintf(fpto, "%s\n", header);
@@ -533,6 +534,8 @@ void generate(void) {
 	footer = doinsert("./media/footer.html");
 
 	if (footer == NULL) {
+		fprintf(fpto, "<footer><center><p>Powered by daisy \
+				</p></center></footer>");
 	} else {
 		fprintf(fpto, "%s", footer);
 	}
